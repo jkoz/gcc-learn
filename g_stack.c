@@ -1,27 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct Element {
+#define STACK_POP_PUSH 0
+#define M_TO_LAST 1
+#define DECLARE_STRUCT_AND_VAR 1
+
+#if DECLARE_STRUCT_AND_VAR
+struct Node {
 	int *data;
-	struct Element *next;
-} Element;
+	struct Node *next;
+} *head;
+typedef struct Node Node;
+#else
+typedef struct Node {
+	int *data;
+	struct Node *next;
+} Node;
+Node *head;
+#endif
+
+
 
 // Stack is a pointer to a pointer to the head of the list
 // Why ** ? the reason is we have to update the pointer to the head of the list
 // to new value
 // IMPORTANT: every value pass to func is copied
-int push(Element **, int *);
-int pop(Element **, int **);
-int createStack(Element **);
-int deleteStack(Element **);
-int printStack(Element **);
+int push(Node **, int *);
+int pop(Node **, int **);
+int createStack(Node **);
+int deleteStack(Node **);
+int printStack(Node **);
+int initDummyStack(Node **, int*, int);
+int findMToLastNode(Node **head, Node**, int m);
 
 void main() {
-	Element *stack;
+	// pop operation
+	Node *stack;
 	createStack(&stack);
 
+#if STACK_POP_PUSH
 	int v1 = 19, v2 = 21, v3 = 11, v4 = 24;
-
+	printf("Stack operations: \n");
 	push(&stack, &v1);
 	push(&stack, &v2);
 	printStack(&stack);
@@ -36,17 +55,55 @@ void main() {
 
 	printStack(&stack);
 	printf("Pop %d\n", *ret);
+#else
+	int d[] = { 19, 21, 11, 24, 15, 20 };
+	initDummyStack(&stack, d, 6);
+	printStack(&stack);
+
+	Node *mBehind;
+	findMToLastNode(&stack, &mBehind, 3);
+	printf("3th behind the last node: %d", *(mBehind->data));
+#endif
 
 	deleteStack(&stack);
 }
 
-int createStack(Element **stack) {
+int initDummyStack(Node **stack, int *d, int size) {
+	int i;
+	for (i = 0; i < size; i++) {
+		push(stack, &d[i]);
+	}
+	return 0;
+}
+
+int findMToLastNode(Node **head, Node **ret, int m) {
+	Node *cur = *head;
+	int i;
+	for (i = 0; i < m; i++) {
+		if (cur->next) {
+			cur = cur->next;
+		} else {
+			return 1; // m is out of range of the list
+		}
+	}
+
+	Node *mBehind = *head;
+	while (cur->next) {
+		cur = cur->next;
+		mBehind = mBehind->next;
+	}
+	*ret = mBehind;
+
+	return 0;
+}
+
+int createStack(Node **stack) {
 	*stack = NULL;
 	return 0;
 }
 
-int push(Element **stack, int *data) {
-	Element *ptr = (Element*) malloc(sizeof (Element*));
+int push(Node **stack, int *data) {
+	Node *ptr = (Node*) malloc(sizeof (Node*));
 	if (!ptr) return 1; // ptr is NULL
 
 	ptr->data = data;
@@ -56,8 +113,8 @@ int push(Element **stack, int *data) {
 	return 0;
 }
 
-int pop(Element **stack, int **data) {
-	Element *ptr = *stack;
+int pop(Node **stack, int **data) {
+	Node *ptr = *stack;
 	if (!ptr) return 1; // ptr is NULL
 
 	*stack = ptr->next; // keep track next node
@@ -67,8 +124,8 @@ int pop(Element **stack, int **data) {
 	return 0;
 }
 
-int deleteStack(Element **stack) {
-	Element *next;
+int deleteStack(Node **stack) {
+	Node *next;
 	while(*stack) {
 		next = (*stack)->next; // keep next node of the current node
 		free(*stack); // free current node
@@ -77,10 +134,10 @@ int deleteStack(Element **stack) {
 	return 0;
 }
 
-int printStack(Element **stack) {
-	printf("printStack: \n");
+int printStack(Node **stack) {
 	while (*stack) {
-		printf("Data: %d\n", *((*stack)->data));
+		printf("%d, ", *((*stack)->data));
 		stack = &((*stack)->next);
 	}
+	printf("\n");
 }
