@@ -9,7 +9,9 @@
 #define RETURN_DYNAMIC_STRING 0
 // the best solution
 #define RETURN_PREALLOCATED_STRING 0
-#define RETURN_STRUCT_ARRAY 1
+#define RETURN_STRUCT_ARRAY 0
+#define DEMONTRATION_ARRAY 0
+#define MATRIX 1
 
 // EXAMPLE OF INCORRECT IMPLEMENTATION OF RETURNING A STRING
 /*int *return_int_arr() {*/
@@ -90,6 +92,31 @@ int main() {
 #elif RETURN_STRUCT_ARRAY
 	struct Data d = func_6();
 	printf("%s", d.buf);
+#elif DEMONTRATION_ARRAY
+	int index ;
+#define ARRAY_SIZE 10
+	char array[ARRAY_SIZE + 1] = "0123456789";
+	printf("&array[index] (array+index) array[index](char value) array[index](hex value)\n");
+	for(index = 0; index < ARRAY_SIZE; ++index)
+		printf("%-10p %-10p %c 0x%x\n", &array[index], (array+index), array[index], array[index]);
+#elif MATRIX
+	int m[60][32];
+
+	// fast
+	/*register int *ptr;*/
+	/*for(ptr = &m[0][0]; ptr <= &m[60 - 1][32 -1]; ptr++) *ptr = -1;*/
+	
+	// library subroutine memset
+	memset(m, 1, sizeof(m));
+
+	// slow
+	int x, y;
+	for(x = 0; x < 32; x++) {
+		for(y = 0; y < 60; y++) {
+			printf("%d", m[x][y]);
+		}
+		printf("\n");
+	}
 #endif
 
 }

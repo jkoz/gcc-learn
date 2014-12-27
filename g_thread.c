@@ -5,7 +5,19 @@
 
 #define CHILD_NUM 10
 
+#undef threadlocal
+#ifdef _ISOC11_SOURCE
+	#define threadlocal _Thread_local
+#elif defined(__APPLE__)
+	#define threadlocal
+#elif defined(__GNUC__) && !defined(threadlocal)
+	#define threadlocal __thread
+#else
+	#define threadlocal
+#endif
+
 // gcc g_thread.c -lpthread
+
 
 typedef struct shared_t {
 	int counter;
@@ -25,7 +37,7 @@ static void check_array(shared_t *);
 int main() {
 	int i;
 	pthread_t childs[CHILD_NUM];
-	shared_t *shared = make_shared(1000000);
+	shared_t *shared = make_shared(100000);
 
 	// run threads
 	for (i = 0; i < CHILD_NUM; i++) {
@@ -71,29 +83,46 @@ static pthread_t make_thread(void *(*entry)(void*), shared_t *shared) {
 
 // multiple threads go here and increase value of arrays to 1
 void *run_entry(void *arg) {
-	printf("run_entry()\n");
+	/*printf("run_entry()\n");*/
+
+
 	shared_t *shared = (shared_t*) arg;
 
+	/* threadlocal variable */
+	{
+		static threadlocal int global_tl = 0; // every thread has its own value
+		global_tl++;
+		printf("static threadlocal var: %d \n", global_tl);
+	}
+
+	/* non-threadlocal variable */
+	{
+		static int global_tl = 0; // every thread has its own value
+		global_tl++;
+		printf("static var: %d \n", global_tl);
+	}
+
+    /* >>> begin synchronous section */
 	sem_wait(shared->mutex); // mutext added, wait
 	while (1) {
-
 		if (shared->counter >= shared->end) {
 			sem_post(shared->mutex); // mutext added, signal
 			break;
 		}
 		shared->array[shared->counter]++;
 		shared->counter++;
-
 	}
 	sem_post(shared->mutex); // mutext added, signal
+    /* >>> end synchronous section */
 
+	/* mark current thread as exit */
 	pthread_exit(NULL);
 }
 
 static void check_array(shared_t *shared) {
 	int i, errors = 0;
 	for (i = 0; i < shared->end; i++) {
-		printf("%d, ", shared->array[i]);
+		/*printf("%d, ", shared->array[i]);*/
 		if (shared->array[i] != 1) errors++;
 	}
 	printf("\n%d errors.\n", errors);

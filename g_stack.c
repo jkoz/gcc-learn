@@ -1,25 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define STACK_POP_PUSH 0
-#define M_TO_LAST 1
-#define DECLARE_STRUCT_AND_VAR 1
+#define STACK_POP_PUSH 1
+#define M_TO_LAST 0
 
-#if DECLARE_STRUCT_AND_VAR
 struct Node {
 	int *data;
 	struct Node *next;
 } *head;
 typedef struct Node Node;
-#else
-typedef struct Node {
-	int *data;
-	struct Node *next;
-} Node;
-Node *head;
-#endif
-
-
 
 // Stack is a pointer to a pointer to the head of the list
 // Why ** ? the reason is we have to update the pointer to the head of the list
@@ -30,6 +19,7 @@ int pop(Node **, int **);
 int createStack(Node **);
 int deleteStack(Node **);
 int printStack(Node **);
+
 int initDummyStack(Node **, int*, int);
 int findMToLastNode(Node **head, Node**, int m);
 
